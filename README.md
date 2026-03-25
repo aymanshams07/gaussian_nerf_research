@@ -1,8 +1,7 @@
 # gaussian_nerf_research
 research and dev work
 
-
-# Here is the **full, clean, copyable Markdown version** of all three parts (NeRF, Gaussian Splatting, and Plane derivation):
+## three parts (NeRF, Gaussian Splatting, and Plane derivation):
 
 ---
 
