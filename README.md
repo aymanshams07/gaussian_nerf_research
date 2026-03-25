@@ -2,7 +2,7 @@
 research and dev work
 
 
-Here is the **full, clean, copyable Markdown version** of all three parts (NeRF, Gaussian Splatting, and Plane derivation):
+# Here is the **full, clean, copyable Markdown version** of all three parts (NeRF, Gaussian Splatting, and Plane derivation):
 
 ---
 
@@ -292,3 +292,7 @@ This is the **core mathematical step in Gaussian splatting rendering**:
 
 ---
 
+# Related Notebooks:
+gaussian splat : https://colab.research.google.com/drive/12X5Bj1Vq9yPV83cpQGGV_BuGQHWb1MCT?usp=sharing
+nerf : https://colab.research.google.com/drive/1WiyZYPVM6SoA6K15AZM9FMM7pDOEniM2?usp=sharing
+LOD streaming : https://colab.research.google.com/drive/1Tu5OqkdLLe_i3aNU6C87EHtrTD8rMafb?usp=sharing
