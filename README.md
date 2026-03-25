@@ -1,312 +1,294 @@
 # gaussian_nerf_research
 research and dev work
-Great — this is exactly the level Miris interviews will expect. I’ll go **clean, mathematical, and step-by-step**, focusing on intuition + derivation (not just definitions).
+
+
+Here is the **full, clean, copyable Markdown version** of all three parts (NeRF, Gaussian Splatting, and Plane derivation):
 
 ---
 
-# 1) Deriving Neural Radiance Fields from Scratch
+# 1) Neural Radiance Fields (NeRF) — Derivation from Scratch
+
+## Step 1: Scene Representation
+
+We define a function:
+
+```
+F(x, d) → (c, σ)
+```
+
+* `x ∈ R^3`: 3D position
+* `d ∈ R^3`: viewing direction
+* `c ∈ R^3`: RGB color
+* `σ ∈ R`: volume density
 
 ---
 
-## Step 1: What are we modeling?
+## Step 2: Ray Parameterization
 
-We want a function:
+A camera ray is defined as:
 
-[
-F(\mathbf{x}, \mathbf{d}) \rightarrow (c, \sigma)
-]
+```
+r(t) = o + t d
+```
 
-* ( \mathbf{x} \in \mathbb{R}^3 ): 3D position
-* ( \mathbf{d} \in \mathbb{R}^3 ): viewing direction
-* ( c \in \mathbb{R}^3 ): RGB color
-* ( \sigma \in \mathbb{R} ): density
-
----
-
-## Step 2: Ray parameterization
-
-A camera ray is:
-
-[
-\mathbf{r}(t) = \mathbf{o} + t\mathbf{d}
-]
-
-* ( \mathbf{o} ): camera origin
-* ( \mathbf{d} ): direction
-* ( t ): depth along ray
+* `o`: camera origin
+* `d`: direction
+* `t`: depth along ray
 
 ---
 
 ## Step 3: Volume Rendering Equation
 
-Color of a pixel = integration along the ray:
+The rendered color of a pixel is:
 
-[
-C(\mathbf{r}) = \int_{t_n}^{t_f} T(t),\sigma(\mathbf{r}(t)),c(\mathbf{r}(t), \mathbf{d}),dt
-]
+```
+C(r) = ∫_{t_n}^{t_f} T(t) σ(r(t)) c(r(t), d) dt
+```
 
-Where:
-
-* ( T(t) ): transmittance (probability ray reaches (t))
+Where `T(t)` is the transmittance.
 
 ---
 
-## Step 4: Transmittance derivation
+## Step 4: Transmittance
 
-[
-T(t) = \exp\left(-\int_{t_n}^{t} \sigma(\mathbf{r}(s)) ds\right)
-]
+```
+T(t) = exp(-∫_{t_n}^{t} σ(r(s)) ds)
+```
 
 Interpretation:
 
-* Accumulates how much density blocks light before point (t)
+* Probability that light reaches point `t` without being absorbed.
 
 ---
 
-## Step 5: Discretization (critical for implementation)
+## Step 5: Discretization
 
-Sample points along ray:
+Sample points along the ray:
 
-[
-t_1, t_2, ..., t_N
-]
+```
+t1, t2, ..., tN
+```
 
 Define:
 
-[
-\alpha_i = 1 - \exp(-\sigma_i \delta_i)
-]
+```
+α_i = 1 - exp(-σ_i δ_i)
+```
 
-[
-T_i = \prod_{j < i} (1 - \alpha_j)
-]
+```
+T_i = ∏_{j < i} (1 - α_j)
+```
 
 Final color:
 
-[
-C = \sum_{i=1}^{N} T_i \alpha_i c_i
-]
+```
+C = Σ_i T_i α_i c_i
+```
 
 ---
 
 ## Step 6: Neural Parameterization
 
-Instead of storing the function explicitly:
+We model:
 
-[
-F_\theta(\mathbf{x}, \mathbf{d}) = (\sigma, c)
-]
+```
+F_θ(x, d) = (σ, c)
+```
 
-* MLP learns scene
-* Input uses positional encoding
-
----
-
-## Key Insight
-
-NeRF = **continuous volumetric density + rendering integral**
-
----
-
-# 2) Deriving 3D Gaussian Splatting
-
----
-
-## Step 1: Replace volume with discrete primitives
-
-Instead of a continuous field:
-
-We represent scene as **N Gaussians**:
-
-Each Gaussian:
-
-[
-G_i(\mathbf{x}) = w_i \cdot \mathcal{N}(\mathbf{x} \mid \mu_i, \Sigma_i)
-]
-
-Where:
-
-* ( \mu_i ): center
-* ( \Sigma_i ): covariance (shape/orientation)
-* ( w_i ): opacity/intensity
-
----
-
-## Step 2: Gaussian density definition
-
-[
-\mathcal{N}(\mathbf{x}) = \frac{1}{(2\pi)^{3/2} |\Sigma|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x}-\mu)^T \Sigma^{-1} (\mathbf{x}-\mu)\right)
-]
-
----
-
-## Step 3: Projection to screen (critical step)
-
-We project 3D Gaussian → 2D screen Gaussian.
-
-Using camera projection:
-
-[
-\mathbf{x}_{screen} = \Pi(\mathbf{x})
-]
-
-Then covariance transforms:
-
-[
-\Sigma_{2D} = J \Sigma_{3D} J^T
-]
-
-* (J): Jacobian of projection
-
----
-
-## Step 4: Rendering (alpha compositing)
-
-Sort Gaussians front-to-back.
-
-For each pixel:
-
-[
-C = \sum_i T_i \alpha_i c_i
-]
-
-Same structure as NeRF!
-
-Where:
-
-* ( \alpha_i ): opacity of projected Gaussian
-* ( T_i = \prod_{j<i}(1-\alpha_j) )
-
----
-
-## Step 5: Why it works
-
-Gaussian splatting ≈ **discretized radiance field**
-
-Instead of:
-
-* Sampling along ray (NeRF)
-
-We:
-
-* Directly rasterize splats
+* Implemented using an MLP
+* Uses positional encoding
 
 ---
 
 ## Key Insight
 
-NeRF → continuous integral
-Gaussian splatting → **explicit, rasterizable approximation**
+* NeRF models a **continuous volumetric field**
+* Rendering is done via **integration along rays**
 
 ---
 
-# 3) Plane-Based Question (Interview Style Derivation)
+# 2) Gaussian Splatting — Derivation from Scratch
+
+## Step 1: Scene Representation
+
+Represent the scene as a sum of Gaussians:
+
+```
+G_i(x) = w_i * N(x | μ_i, Σ_i)
+```
+
+Where:
+
+* `μ_i`: mean (center)
+* `Σ_i`: covariance matrix
+* `w_i`: weight / opacity
 
 ---
+
+## Step 2: Gaussian Definition
+
+```
+N(x) = (1 / ((2π)^{3/2} |Σ|^{1/2})) * exp(-1/2 (x - μ)^T Σ^{-1} (x - μ))
+```
+
+---
+
+## Step 3: Projection to Screen
+
+We project 3D points to 2D:
+
+```
+x_screen = Π(x)
+```
+
+Covariance transforms as:
+
+```
+Σ_2D = J Σ_3D J^T
+```
+
+* `J`: Jacobian of projection
+
+---
+
+## Step 4: Rendering via Alpha Compositing
+
+Sort Gaussians front-to-back:
+
+```
+C = Σ_i T_i α_i c_i
+```
+
+Where:
+
+```
+T_i = ∏_{j < i} (1 - α_j)
+```
+
+---
+
+## Step 5: Key Insight
+
+* Gaussian splatting = **explicit discrete approximation of radiance fields**
+* No ray marching required
+* Enables real-time rendering
+
+---
+
+# 3) Plane-Based Derivation (Interview-Style Question)
 
 ## Problem
 
-**Given a 3D Gaussian, derive its projection onto a plane (camera image plane).**
+Given a 3D Gaussian, derive its projection onto a 2D image plane.
 
 ---
 
-## Step 1: Plane equation
+## Step 1: Plane Equation
 
-A plane:
+A plane is defined as:
 
-[
-\mathbf{n}^T \mathbf{x} + d = 0
-]
+```
+n^T x + d = 0
+```
 
----
-
-## Step 2: Local linearization of projection
-
-Camera projection:
-
-[
-\mathbf{x}_{2D} = \Pi(\mathbf{x})
-]
-
-Approximate near mean ( \mu ):
-
-[
-\Pi(\mathbf{x}) \approx \Pi(\mu) + J(\mathbf{x}-\mu)
-]
+* `n`: normal vector
+* `d`: offset
 
 ---
 
-## Step 3: Transform Gaussian
+## Step 2: Camera Projection
 
-Original:
+Projection function:
 
-[
-\mathbf{x} \sim \mathcal{N}(\mu, \Sigma)
-]
+```
+x_2D = Π(x)
+```
 
-After linear transform:
+We linearize around the Gaussian mean `μ`:
 
-[
-\mathbf{y} = J\mathbf{x}
-]
+```
+Π(x) ≈ Π(μ) + J (x - μ)
+```
+
+* `J`: Jacobian of projection
+
+---
+
+## Step 3: Gaussian Transformation
+
+Original distribution:
+
+```
+x ~ N(μ, Σ)
+```
+
+Apply linear transform:
+
+```
+y = J x
+```
 
 Then:
 
-[
-\mathbf{y} \sim \mathcal{N}(J\mu, J\Sigma J^T)
-]
+```
+y ~ N(Jμ, J Σ J^T)
+```
 
 ---
 
-## Step 4: Restrict to plane
+## Step 4: Final 2D Gaussian
 
-Projection already maps to 2D plane:
+After projection:
 
-So resulting distribution:
+```
+μ_2D = Π(μ)
+Σ_2D = J Σ J^T
+```
 
-[
-\mathcal{N}(\mu_{2D}, \Sigma_{2D})
-]
+So:
 
-Where:
-
-* ( \mu_{2D} = \Pi(\mu) )
-* ( \Sigma_{2D} = J \Sigma J^T )
+```
+N(μ_2D, Σ_2D)
+```
 
 ---
 
-## Step 5: Geometric interpretation
+## Step 5: Geometric Interpretation
 
 * 3D ellipsoid → 2D ellipse
 * Orientation preserved via covariance
-* Size depends on depth + perspective
+* Scale affected by depth and perspective
 
 ---
 
-## Step 6: Why this matters (Miris-level insight)
+## Step 6: Why This Matters
 
-This step is the **core of real-time rendering in Gaussian splatting**:
+This is the **core mathematical step in Gaussian splatting rendering**:
 
-* Avoid ray marching
-* Directly rasterize ellipses
-* Enables GPU acceleration
+* Converts 3D Gaussians → 2D splats
+* Enables rasterization instead of ray marching
+* Critical for real-time performance on mobile devices
 
 ---
 
-# Final Big Picture (What Interviewers Want)
+# Final Summary (Interview-Level Insight)
 
-You should be able to say:
+* **NeRF**:
 
-* NeRF = **integral along rays of density**
-* Gaussian splatting = **projected anisotropic kernels**
-* Both share:
+  * Continuous volumetric representation
+  * Uses ray integration
+  * High quality but slow
 
-  * Alpha compositing
-  * Radiance accumulation
-* Key difference:
+* **Gaussian Splatting**:
 
-  * NeRF → implicit + slow
-  * Splatting → explicit + real-time
+  * Discrete explicit representation
+  * Uses projected Gaussians
+  * Real-time capable
 
+* **Shared idea**:
 
+  * Both rely on **alpha compositing**
+  * Both approximate the same radiance field physics
+
+---
 
