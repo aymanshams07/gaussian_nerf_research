@@ -6,6 +6,11 @@ research and dev work
 ---
 
 # 1) Neural Radiance Fields (NeRF) — Derivation from Scratch
+core concept : NeRF encodes a 3D scene as a continuous volumetric function that maps 3D coordinates and viewing directions to emitted color and density. A multilayer perceptron (MLP) learns this mapping from input photos. Rendering is achieved by integrating color and density along camera rays through the volume, simulating light transport.
+
+Training and rendering process
+
+During training, NeRF compares rendered pixels from random camera rays to their corresponding real images, optimizing network parameters through gradient descent. Once trained, the model can synthesize unseen perspectives by sampling new rays through the learned field. This enables smooth, high-fidelity camera motion around complex objects or scenes.
 
 ## Step 1: Scene Representation
 
