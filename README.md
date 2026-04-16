@@ -179,7 +179,7 @@ T_i = ∏_{j < i} (1 - α_j)
 
 ---
 
-# 3) Plane-Based Derivation (Interview-Style Question)
+# 3) Plane-Based Derivation
 
 ## Problem
 
