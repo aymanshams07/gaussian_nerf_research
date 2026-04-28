@@ -294,8 +294,7 @@ This is the **core mathematical step in Gaussian splatting rendering**:
   * Both rely on **alpha compositing**
   * Both approximate the same radiance field physics
 
----
-
+--
 # Related Notebooks:
 * 1) gaussian splat : https://colab.research.google.com/drive/12X5Bj1Vq9yPV83cpQGGV_BuGQHWb1MCT?usp=sharing
 * 2) nerf : https://colab.research.google.com/drive/1WiyZYPVM6SoA6K15AZM9FMM7pDOEniM2?usp=sharing
